@@ -7,7 +7,7 @@ from import_poll import import_polls
 url = 'http://www.sondaggipoliticoelettorali.it'
 
 # import data_inserimento from command line
-data_inserimento = '05/06/2020'
+data_inserimento = '15/06/2020'
 
 # file string name
 vi_filename_csv = 'voting_intention_polls.csv'

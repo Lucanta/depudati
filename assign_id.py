@@ -1,7 +1,3 @@
-import pandas as pd
-import numpy as np
-from os import path
-
 def assign_party_id(party_str):
     
     # list each party string in alphabetical order
@@ -52,7 +48,6 @@ def assign_party_id(party_str):
     lcon_str = ['La lista di Giuseppe Conte']
     lcon_id = 23
 
-
     # the order here is important because of the substring possibly present in multiple party names (e.g. 'azione' in 'Federazione', etc)
     if any( x in party_str for x in ev_str): party_id = ev_id    
     elif any(x in party_str for x in az_str): party_id = az_id
@@ -69,6 +64,7 @@ def assign_party_id(party_str):
     elif any( x in party_str for x in pap_str): party_id = pap_id
     elif any( x in party_str for x in camb_str): party_id = camb_id
     elif any( x in party_str for x in pc_str): party_id = pc_id
+    elif any( x in party_str for x in mdp_str): party_id = mdp_id
     elif any( x in party_str for x in leu_str): party_id = leu_id
     elif any( x in party_str for x in pdf_str): party_id = pdf_id
     elif any( x in party_str for x in svp_str): party_id = svp_id
@@ -79,22 +75,3 @@ def assign_party_id(party_str):
     else: party_id = 0
         
     return party_id
-
-def write_poll_to_csv(poll_id,poll_results,filename,no_of_parties):
-    
-    if(path.exists(filename)):
-        # Check if poll_id is already present in csv file
-        dataframe = pd.read_csv(filename,header=None,delimiter=';',usecols=list(range(no_of_parties+1)),error_bad_lines=False)
-        is_poll_in_file = poll_id in dataframe[0].unique()
-    
-        if not is_poll_in_file:
-            row_to_add = pd.Series(np.append(poll_id,poll_results))
-            print(row_to_add)
-            dataframe = dataframe.append(row_to_add,ignore_index=True)
-            dataframe.to_csv(filename,header=None,index=False,index_label=False,sep=';',line_terminator='\n')
-            
-    else:
-        print(poll_results)
-        row_to_add = pd.DataFrame([np.append(poll_id,poll_results)],index=None,columns=range(no_of_parties+1))
-        print(row_to_add)
-        row_to_add.to_csv(filename,header=None,index=False,index_label=False,columns=range(no_of_parties+1),sep=';',line_terminator='\n')

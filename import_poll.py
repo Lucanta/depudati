@@ -4,7 +4,8 @@ import re
 import time
 from selenium.webdriver.common.keys import Keys
 from scrap_polls import scrap_poll_vi
-from assign_id import write_poll_to_csv
+#from assign_id import write_poll_to_csv
+from write_to_file import write_poll_to_csv, write_poll_to_SQL, write_metadata_to_SQL, write_question_to_SQL
 
 def import_polls(no_polls_avail,list_polls_avail,browser,main_window,vi_string,vi_filename_csv):
     
@@ -20,7 +21,7 @@ def import_polls(no_polls_avail,list_polls_avail,browser,main_window,vi_string,v
         end_date_fw = browser.find_element_by_id("ctl00_Contenuto_ucGestioneSondaggio_ucDatiSondaggioReadOnly_DataRealizzazioneA").text
         sample_size = browser.find_element_by_id("ctl00_Contenuto_ucGestioneSondaggio_ucDatiSondaggioReadOnly_Campione_Intervistati").text
         method = browser.find_element_by_id("ctl00_Contenuto_ucGestioneSondaggio_ucDatiSondaggioReadOnly_Metodo_Raccolta_Informazioni").text
-    
+        
         # Check poll number through pdf file name
         SCARICA_button = browser.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[3]/div/div/div/div[2]/div/a')
         SCARICA_button.click()
@@ -44,17 +45,12 @@ def import_polls(no_polls_avail,list_polls_avail,browser,main_window,vi_string,v
         # remove downloaded polls (pdf files)
         os.remove('/localhome/mmlca/Downloads/'+poll_name)
         
-        # Insert poll info on a SQL database ---> to be moved to a separate script
-    #    conn = sqlite3.connect('db/ItalianPolls.db')
-    #    c = conn.cursor()
-    #    insert_stmt = (
-    #        "INSERT INTO list_polls "
-    #        "VALUES (?, ?, ?, ?, ?, ?);"
-    #    )
-    #    data = (poll_id,pollster_name,start_date_fw.replace("/","-"),end_date_fw.replace("/","-"),sample_size,method)
-    #    c.execute(insert_stmt,data)
-    #    conn.commit()
-    #    conn.close()
+        # Add metadata about poll to SQL database
+        db_path = 'sql_db/ItalianPolls.db'
+        table_metadata = "polls_metadata"
+        table_questions = 'polls_questions'
+        table_data = 'polls_data'
+        write_metadata_to_SQL(db_path,table_metadata,poll_id,pollster_name,start_date_fw.replace("/","-"),end_date_fw.replace("/","-"),sample_size,method)
         
         # Go to the 'Domande' section
         DOMANDE_button = browser.find_element_by_xpath('/html/body/form/div[3]/div[2]/div[1]/div[2]/div[2]/input[2]')
@@ -75,13 +71,15 @@ def import_polls(no_polls_avail,list_polls_avail,browser,main_window,vi_string,v
             question_text = question_id.get_attribute("value")
             print(question_text)
             # Open question about voting intention if present
-            if any(x in question_text for x in vi_string): 
+            if any(x in question_text for x in vi_string):
+                write_question_to_SQL(db_path,table_questions,poll_id,j+1,question_text)
                 question_id.click()
                 poll_results = scrap_poll_vi(browser,pollster_name)
                 print(poll_results)
                 # Write results on a csv file
-                write_poll_to_csv(poll_id,poll_results,vi_filename_csv,22)
-    
+                write_poll_to_csv(poll_id,j+1,poll_results,vi_filename_csv,23)
+                write_poll_to_SQL(db_path,table_data,poll_id,j+1,23,poll_results)
+                
         time.sleep(2)
         # close tab and return to main window
         browser.close()

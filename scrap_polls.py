@@ -6,7 +6,7 @@ from assign_id import assign_party_id
 # define function to scrap poll results about voting intention
 def scrap_poll_vi(browser,pollster):
     
-    num_of_parties = 22
+    num_of_parties = 23
     poll_results = np.zeros(num_of_parties)
     
     if(pollster=='Emg Acqua'):
@@ -200,9 +200,9 @@ def scrap_poll_vi(browser,pollster):
         for i in range(len(poll_results_list)):
             j = assign_party_id(poll_results_list[i])
             
-            if(j!=0):     
-                poll_value = float(np.array(re.findall("\d+\.\d+",poll_results_list[i].replace(',','.'))))
-                poll_results[j-1] = poll_value
+            if(j!=0):
+                poll_value = np.array(re.findall("\d+\.\d+",poll_results_list[i].replace(',','.')))
+                if(poll_value): poll_results[j-1] = float(poll_value)
             
     return poll_results
 
